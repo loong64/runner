@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -1688,3 +1688,4 @@ namespace GitHub.Runner.Worker
         public static readonly string Debug = "##[debug]";
     }
 }
+

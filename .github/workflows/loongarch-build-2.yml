@@ -1,0 +1,88 @@
+name: Build and Release linux-loongarch64
+
+on:
+    workflow_dispatch:
+      inputs:
+        branch:
+          description: 'Build Branch'
+          required: true
+          type: string
+          default: build
+        tag:
+          description: 'Version Tag'
+          required: true
+          type: string
+          default: v2.329.0
+        release:
+          description: 'publish release'
+          type: boolean
+          default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # SDK_DEFAULT should match the DOTNETSDK_VERSION in the src/dev.sh and src/global.json
+      SDK_DEFAULT: 9.0.100
+      SDK_VERSION: 9.0.101
+      SDK_DOWNLOAD_TAH: 'v9.0.101%2Bloong.20241205.build.20241205'
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        fetch-tags: true
+        ref: ${{ inputs.branch }}
+
+
+    - name: Download SDK
+      run: |
+        mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
+        mkdir tmp_dir
+        curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+        curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz
+        tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+        tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C tmp_dir
+        cp -r -L tmp_dir/packs/Microsoft.AspNetCore.App.Runtime.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
+        cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Host.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
+        cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Runtime.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
+        rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz
+        rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+        rm -rf tmp_dir
+
+    - name: Edit SDK Version
+      run: |
+        sed -i "s/${{ env.SDK_DEFAULT}}/${{ env.SDK_VERSION }}/" src/dev.sh src/global.json
+
+    # Build runner layout
+    - name: Build & Layout Release
+      run: |
+        ./dev.sh layout Release linux-loongarch64
+      working-directory: src
+
+    # Create runner package tar.gz/zip
+    - name: Package Release
+      if: github.event_name != 'pull_request'
+      run: |
+        ./dev.sh package Release linux-loongarch64
+      working-directory: src
+
+    # Upload runner package tar.gz/zip as artifact
+    - name: Publish Artifact
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: runner-package-linux-loongarch64
+        path: |
+          _package
+
+    - name: Make release
+      uses: softprops/action-gh-release@v2
+      if: ${{ inputs.release }}
+      with:
+        files: | 
+            ${{ github.workspace }}/_package/actions-runner-linux-loongarch64-*.tar.gz
+        prerelease: false
+        tag_name:  ${{ inputs.tag }}

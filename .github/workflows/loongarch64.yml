@@ -1,0 +1,89 @@
+name: Runner linux-loongarch64
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Build Branch'
+        required: true
+        type: string
+        default: build
+      tag:
+        description: 'Version Tag'
+        required: true
+        type: string
+        default: v2.329.0
+      release:
+        description: 'publish release'
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      # SDK_DEFAULT should match the DOTNETSDK_VERSION in the src/dev.sh and src/global.json
+      SDK_DEFAULT: 9.0.100
+      SDK_VERSION: 9.0.101
+      SDK_DOWNLOAD_TAH: 'v9.0.101%2Bloong.20241205.build.20241205'
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        fetch-tags: true
+        ref: ${{ inputs.branch }}
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Set up loong64 Debian & Build
+      uses: addnab/docker-run-action@v3
+      with:
+        image: ghcr.io/loong64/debian:trixie
+        options: --cpus=4 --platform linux/loong64 --privileged -v ${{ github.workspace }}:/work
+        run: |
+          cd /work
+          export DEBIAN_FRONTEND=noninteractive
+          apt update; apt install sudo git curl wget jq libicu-dev -y
+          git config --global --add safe.directory /work
+          
+          # Download SDK
+          mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
+          curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+          tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+          rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+
+          # Edit SDK Version
+          sed -i "s/${{ env.SDK_DEFAULT}}/${{ env.SDK_VERSION }}/" src/dev.sh src/global.json
+        
+          # Build & Layout Release
+          cd src && ./dev.sh layout Release linux-loongarch64 && cd ..
+
+          # Package Release
+          cd src && ./dev.sh package Release linux-loongarch64 && cd ..
+
+    # Upload runner package tar.gz/zip as artifact
+    - name: Publish Artifact
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: runner-package-linux-loongarch64
+        path: |
+          _package
+
+    - name: Make release
+      uses: softprops/action-gh-release@v2
+      if: ${{ inputs.release }}
+      with:
+        files: | 
+          ${{ github.workspace }}/_package/actions-runner-linux-loongarch64-*.tar.gz
+        prerelease: false
+        tag_name:  ${{ inputs.tag }}
