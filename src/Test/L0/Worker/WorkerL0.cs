@@ -81,7 +81,7 @@ namespace GitHub.Runner.Common.Tests.Worker
         [Fact]
         [Trait("Level", "L0")]
         [Trait("Category", "Worker")]
-        public async void DispatchRunNewJob()
+        public async Task DispatchRunNewJob()
         {
             //Arrange
             using (var hc = new TestHostContext(this))
@@ -134,7 +134,7 @@ namespace GitHub.Runner.Common.Tests.Worker
         [Fact]
         [Trait("Level", "L0")]
         [Trait("Category", "Worker")]
-        public async void DispatchCancellation()
+        public async Task DispatchCancellation()
         {
             //Arrange
             using (var hc = new TestHostContext(this))

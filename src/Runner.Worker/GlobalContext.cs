@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using GitHub.Actions.RunService.WebApi;
 using GitHub.DistributedTask.WebApi;
@@ -45,3 +45,4 @@ namespace GitHub.Runner.Worker
         public IDictionary<string, ArtifactSubject> ArtifactSubjects { get; set; }
     }
 }
+

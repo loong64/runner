@@ -109,3 +109,4 @@ namespace GitHub.Actions.WorkflowParser
         public static readonly IReadOnlyList<string> Names = s_properties.Keys.Order().ToList().AsReadOnly();
     }
 }
+
