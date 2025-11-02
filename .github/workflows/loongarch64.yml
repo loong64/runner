@@ -24,7 +24,7 @@ jobs:
 
     env:
       # SDK_DEFAULT should match the DOTNETSDK_VERSION in the src/dev.sh and src/global.json
-      SDK_DEFAULT: 8.0.415
+      SDK_DEFAULT: 9.0.100
       SDK_VERSION: 9.0.104
       SDK_DOWNLOAD_TAH: 'v9.0.201%2Bloong.20250313.build.20250313'
 
