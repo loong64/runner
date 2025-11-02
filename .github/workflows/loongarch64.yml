@@ -4,10 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Actions Runner Version'
+        description: 'Build Branch'
         required: true
         type: string
-        default: v2.329.0-loongarch64
+        default: build
+      tag:
+        description: 'Version Tag'
+        required: true
+        type: string
+        default: v2.329.0
       release:
         description: 'publish release'
         type: boolean
@@ -81,4 +86,4 @@ jobs:
         files: | 
           ${{ github.workspace }}/_package/actions-runner-linux-loongarch64-*.tar.gz
         prerelease: false
-        tag_name:  ${{ inputs.branch }}
+        tag_name:  ${{ inputs.tag }}
