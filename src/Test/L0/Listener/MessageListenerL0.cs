@@ -52,6 +52,7 @@ namespace GitHub.Runner.Common.Tests.Listener
         [Trait("Level", "L0")]
         [Trait("Category", "Runner")]
         public async Task CreatesSession()
+        public async Task CreatesSession()
         {
             using (TestHostContext tc = CreateTestContext())
             using (var tokenSource = new CancellationTokenSource())
@@ -224,6 +225,7 @@ namespace GitHub.Runner.Common.Tests.Listener
         [Trait("Level", "L0")]
         [Trait("Category", "Runner")]
         public async Task GetNextMessageWithBrokerMigration()
+        public async Task GetNextMessageWithBrokerMigration()
         {
             using (TestHostContext tc = CreateTestContext())
             using (var tokenSource = new CancellationTokenSource())
@@ -339,6 +341,7 @@ namespace GitHub.Runner.Common.Tests.Listener
         [Trait("Level", "L0")]
         [Trait("Category", "Runner")]
         public async Task CreateSessionWithOriginalCredential()
+        public async Task CreateSessionWithOriginalCredential()
         {
             using (TestHostContext tc = CreateTestContext())
             using (var tokenSource = new CancellationTokenSource())
@@ -383,6 +386,7 @@ namespace GitHub.Runner.Common.Tests.Listener
         [Fact]
         [Trait("Level", "L0")]
         [Trait("Category", "Runner")]
+        public async Task SkipDeleteSession_WhenGetNextMessageGetTaskAgentAccessTokenExpiredException()
         public async Task SkipDeleteSession_WhenGetNextMessageGetTaskAgentAccessTokenExpiredException()
         {
             using (TestHostContext tc = CreateTestContext())
