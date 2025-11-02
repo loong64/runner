@@ -57,7 +57,7 @@ jobs:
           
           # Download SDK
           mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
-          curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+          curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
           tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
           rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
 
