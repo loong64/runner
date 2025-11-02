@@ -49,6 +49,7 @@ jobs:
         cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Host.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
         cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Runtime.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
         rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz
+        rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
         rm -rf tmp_dir
 
     - name: Edit SDK Version
