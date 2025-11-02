@@ -52,12 +52,12 @@ jobs:
         run: |
           cd /work
           export DEBIAN_FRONTEND=noninteractive
-          apt update; apt install sudo git curl wget jq -y
+          apt update; apt install sudo git curl wget jq libicu-dev -y
           git config --global --add safe.directory /work
           
           # Download SDK
           mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
-          wget https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+          curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
           tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
           rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
 
