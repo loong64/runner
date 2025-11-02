@@ -40,9 +40,16 @@ jobs:
     - name: Download SDK
       run: |
         mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
+        mkdir tmp_dir
+        curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
         curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz -o dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz
         tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+        tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C tmp_dir
+        cp -r -L tmp_dir/packs/Microsoft.AspNetCore.App.Runtime.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
+        cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Host.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
+        cp -r -L tmp_dir/packs/Microsoft.NETCore.App.Runtime.linux-loongarch64 _dotnetsdk/${{ env.SDK_VERSION }}/packs
         rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-x64.tar.gz
+        rm -rf tmp_dir
 
     - name: Edit SDK Version
       run: |
