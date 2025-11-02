@@ -18,8 +18,10 @@ jobs:
     runs-on: self-hosted
 
     env:
-      SDK_DEFAULT: 8.0.413
-      SDK_VERSION: 8.0.121
+      # SDK_DEFAULT should match the DOTNETSDK_VERSION in the src/dev.sh and src/global.json
+      SDK_DEFAULT: 8.0.415
+      SDK_VERSION: 9.0.104
+      SDK_DOWNLOAD_TAH: 'v9.0.201%2Bloong.20250313.build.20250313'
 
     permissions:
       contents: write
@@ -31,13 +33,12 @@ jobs:
         fetch-tags: true
         ref: ${{ inputs.branch }}
 
-
     - name: Download SDK
       run: |
         mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
-        # wget https://github.com/chenguohui/dotnet-loongarch/releases/download/v${{ env.SDK_VERSION }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
-        # tar xf dotnet-sdk-${{ env.SDK_VERSION}}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
-        tar xf ~/assets/dotnet-sdk-${{ env.SDK_VERSION}}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+        wget https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+        tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+        rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
 
     - name: Edit SDK Version
       run: |
