@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     env:
       # SDK_DEFAULT should match the DOTNETSDK_VERSION in the src/dev.sh and src/global.json
@@ -33,37 +33,37 @@ jobs:
         fetch-tags: true
         ref: ${{ inputs.branch }}
 
-    - name: Download SDK
-      run: |
-        mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
-        wget https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
-        tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
-        rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v3
 
-    - name: Edit SDK Version
-      run: |
-        sed -i "s/${{ env.SDK_DEFAULT}}/${{ env.SDK_VERSION }}/" src/dev.sh src/global.json
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Set up loong64 Debian & Build
+      uses: addnab/docker-run-action@v3
+      with:
+        image: ghcr.io/loong64/debian:trixie
+        options: --cpus=4 --platform linux/loong64 --privileged -v ${{ github.workspace }}:/work
+        run: |
+          cd /work
+          export DEBIAN_FRONTEND=noninteractive
+          apt update; apt install sudo git curl wget jq -y
+          git config --global --add safe.directory /work
+          
+          # Download SDK
+          mkdir -p _dotnetsdk/${{ env.SDK_VERSION }}
+          wget https://github.com/loongson-community/dotnet-unofficial-build/releases/download/${{ env.SDK_DOWNLOAD_TAH }}/dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
+          tar xf dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz -C _dotnetsdk/${{ env.SDK_VERSION }}
+          rm dotnet-sdk-${{ env.SDK_VERSION }}-linux-loongarch64.tar.gz
 
+          # Edit SDK Version
+          sed -i "s/${{ env.SDK_DEFAULT}}/${{ env.SDK_VERSION }}/" src/dev.sh src/global.json
+        
+          # Build & Layout Release
+          cd src && ./dev.sh layout Release linux-loongarch64 && cd ..
 
-    # Build runner layout
-    - name: Build & Layout Release
-      run: |
-        ./dev.sh layout Release linux-loongarch64
-      working-directory: src
-
-    # # Run tests
-    # - name: L0
-    #   run: |
-    #     ./dev.sh test
-    #   working-directory: src
-    #   # if: matrix.runtime != 'linux-arm64' && matrix.runtime != 'linux-arm' && matrix.runtime != 'osx-arm64' && matrix.runtime != 'win-arm64'
-
-    # Create runner package tar.gz/zip
-    - name: Package Release
-      if: github.event_name != 'pull_request'
-      run: |
-        ./dev.sh package Release linux-loongarch64
-      working-directory: src
+          # Package Release
+          cd src && ./dev.sh package Release linux-loongarch64 && cd ..
 
     # Upload runner package tar.gz/zip as artifact
     - name: Publish Artifact
@@ -75,24 +75,10 @@ jobs:
           _package
 
     - name: Make release
+      uses: softprops/action-gh-release@v2
       if: ${{ inputs.release }}
-      run: |
-        sudo apt install -y hub
-
-        # hub(1) requires release to be created inside a git repo
-        # rm -rf repo
-        # git clone https://${{ secrets.CLONE_TOKEN }}:x-oauth-basic@github.com/${{ github.repository }}.git repo
-        # cd repo
-
-        tag_name=${{ inputs.branch }}
-
-        artifacts=" -a _package/actions-runner-linux-loongarch64-*.tar.gz"
-
-        echo "tag_name: $tag_name"
-        echo "artifacts: $artifacts"
-
-        # docs: https://hub.github.com/hub-release.1.html
-        hub release create $artifacts --prerelease -m "$tag_name" "$tag_name"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      with:
+        files: | 
+          ${{ github.workspace }}/_package/actions-runner-linux-loongarch64-*.tar.gz
+        prerelease: false
+        tag_name:  ${{ inputs.branch }}
