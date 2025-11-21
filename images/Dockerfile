@@ -4,9 +4,9 @@ FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-noble as build
 ARG TARGETOS
 ARG TARGETARCH
 ARG RUNNER_VERSION
-ARG RUNNER_CONTAINER_HOOKS_VERSION=0.6.1
-ARG DOCKER_VERSION=27.3.1
-ARG BUILDX_VERSION=0.18.0
+ARG RUNNER_CONTAINER_HOOKS_VERSION=0.7.0
+ARG DOCKER_VERSION=29.0.1
+ARG BUILDX_VERSION=0.30.0
 
 RUN apt update -y && apt install curl unzip -y
 
@@ -50,14 +50,15 @@ RUN add-apt-repository ppa:git-core/ppa \
     && apt install -y git \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /home/runner
+
 RUN adduser --disabled-password --gecos "" --uid 1001 runner \
     && groupadd docker --gid 123 \
     && usermod -aG sudo runner \
     && usermod -aG docker runner \
     && echo "%sudo   ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers \
-    && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers
-
-WORKDIR /home/runner
+    && echo "Defaults env_keep += \"DEBIAN_FRONTEND\"" >> /etc/sudoers \
+    && chmod 777 /home/runner
 
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
