@@ -5,8 +5,8 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG RUNNER_VERSION
 ARG RUNNER_CONTAINER_HOOKS_VERSION=0.7.0
-ARG DOCKER_VERSION=29.0.2
-ARG BUILDX_VERSION=0.30.1
+ARG DOCKER_VERSION=29.3.0
+ARG BUILDX_VERSION=0.32.1
 
 RUN apt update -y && apt install curl unzip -y
 
@@ -19,6 +19,10 @@ RUN export RUNNER_ARCH=${TARGETARCH} \
 
 RUN curl -f -L -o runner-container-hooks.zip https://github.com/actions/runner-container-hooks/releases/download/v${RUNNER_CONTAINER_HOOKS_VERSION}/actions-runner-hooks-k8s-${RUNNER_CONTAINER_HOOKS_VERSION}.zip \
     && unzip ./runner-container-hooks.zip -d ./k8s \
+    && rm runner-container-hooks.zip
+
+RUN curl -f -L -o runner-container-hooks.zip https://github.com/actions/runner-container-hooks/releases/download/v0.8.1/actions-runner-hooks-k8s-0.8.1.zip \
+    && unzip ./runner-container-hooks.zip -d ./k8s-novolume \
     && rm runner-container-hooks.zip
 
 RUN export RUNNER_ARCH=${TARGETARCH} \
